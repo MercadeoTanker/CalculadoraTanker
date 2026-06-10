@@ -246,7 +246,7 @@
   /* Recommendations */
   .tanque-option {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 14px;
     padding: 14px 16px;
     border-radius: var(--radius-sm);
@@ -269,16 +269,67 @@
   .t-icon {
     font-size: 28px;
     flex-shrink: 0;
+    margin-top: 4px;
   }
   .t-info { flex: 1; }
   .t-name { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: var(--text); }
-  .t-desc { font-size: 12px; color: var(--text-soft); margin-top: 2px; }
+  .t-desc { font-size: 12px; color: var(--text-soft); margin-top: 2px; line-height: 1.45; }
+  .t-specs {
+    margin-top: 12px;
+  }
+  .t-specs-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+  }
+  .t-specs-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .t-spec {
+    background: rgba(255,255,255,0.62);
+    border: 1px solid rgba(10,79,168,0.10);
+    border-radius: 12px;
+    padding: 10px 12px;
+    min-width: 0;
+  }
+  .tanque-option.best .t-spec {
+    background: rgba(255,255,255,0.76);
+    border-color: rgba(14,168,122,0.18);
+  }
+  .tanque-option.small .t-spec {
+    background: rgba(255,255,255,0.74);
+    border-color: rgba(245,158,11,0.18);
+  }
+  .t-spec-label {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+  }
+  .t-spec-value {
+    display: block;
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.1;
+  }
   .t-badge {
     font-size: 11px;
     font-weight: 600;
     padding: 4px 10px;
     border-radius: 99px;
     white-space: nowrap;
+    align-self: flex-start;
+    margin-top: 2px;
   }
   .badge-best { background: var(--teal); color: white; }
   .badge-ok { background: var(--blue-pale); color: var(--blue); }
@@ -485,47 +536,65 @@ function fmtVal(litros) {
 function unitLabel() { return currentUnit === 'galones' ? 'galones' : 'litros'; }
 
 const tanques = [
-  { cap: 95,   nombre: 'Minitanker 95L',   gal: '25G'  },
-  { cap: 170,  nombre: 'Minitanker 170L',  gal: '45G'  },
-  { cap: 210,  nombre: 'Minitanker 210L',  gal: '55G'  },
-  { cap: 770,  nombre: 'Tanque 770L',      gal: '204G' },
-  { cap: 1170, nombre: 'Tanque 1,170L',    gal: '309G' },
-  { cap: 1270, nombre: 'Tanque 1,270L',    gal: '336G' },
-  { cap: 1370, nombre: 'Tanque 1,370L',    gal: '362G' },
-  { cap: 1570, nombre: 'Tanque 1,570L',    gal: '415G' },
-  { cap: 2170, nombre: 'Tanque 2,170L',    gal: '574G' },
-  { cap: 2700, nombre: 'Tanque 2,700L',    gal: '714G' },
+  { cap: 770,  nombre: 'Tanque 770L',      gal: '204G', alto: '0.93 m',  ancho: '1.09 m' },
+  { cap: 1170, nombre: 'Tanque 1,170L',    gal: '309G', alto: '1.28 m',  ancho: '1.09 m' },
+  { cap: 1270, nombre: 'Tanque 1,270L',    gal: '336G', alto: '1.50 m',  ancho: '1.09 m' },
+  { cap: 1370, nombre: 'Tanque 1,370L',    gal: '362G', alto: '1.62 m',  ancho: '1.09 m' },
+  { cap: 1570, nombre: 'Tanque 1,570L',    gal: '415G', alto: '1.62 m',  ancho: '1.18 m' },
+  { cap: 2170, nombre: 'Tanque 2,170L',    gal: '574G', alto: '1.94 m',  ancho: '1.20 m' },
+  { cap: 2700, nombre: 'Tanque 2,700L',    gal: '714G', alto: '2.27 m',  ancho: '1.25 m' },
 ];
 
 function fmt(n) { return Math.round(n).toLocaleString('es-PA'); }
 
+function measuresTable(t, titulo = 'Medidas') {
+  return `<div class="t-specs" aria-label="${titulo}">
+    <div class="t-specs-title">${titulo}</div>
+    <div class="t-specs-grid">
+      <div class="t-spec">
+        <span class="t-spec-label">Alto</span>
+        <span class="t-spec-value">${t.alto}</span>
+      </div>
+      <div class="t-spec">
+        <span class="t-spec-label">Ancho</span>
+        <span class="t-spec-value">${t.ancho}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
 function calcular() {
   const p = +document.getElementById('personas').value;
   const d = +document.getElementById('dias').value;
-  const u = 225; // Estándar Tanque Center: 200-250L por persona
+  const consumoMin = 200;
+  const consumoMax = 250;
 
   document.getElementById('p-val').textContent = p;
   document.getElementById('d-val').textContent = d;
-  
 
-  const diario = p * u;
-  const minima = diario * d;
-  const ideal = Math.round(minima * 1.5);
+  // Estimación Tanque Center: entre 200 y 250 litros por persona al día.
+  // Para recomendar tanque se usa el escenario alto (250 L) y así evitar quedarse corto.
+  const diarioMin = p * consumoMin;
+  const diarioMax = p * consumoMax;
+  const minimaMin = diarioMin * d;
+  const minimaMax = diarioMax * d;
+  const capacidadBase = minimaMax;
+  const ideal = Math.round(capacidadBase * 1.5);
 
-  document.getElementById('r-minima').textContent = fmt(minima);
+  document.getElementById('r-minima').textContent = `${fmt(minimaMin)} – ${fmt(minimaMax)}`;
   document.getElementById('r-ideal').textContent = fmt(ideal);
-  document.getElementById('r-diario').textContent = fmt(diario);
-  document.getElementById('unit-minima').textContent = `litros / ${(minima * L_TO_GAL).toFixed(0)} gal`;
-  document.getElementById('unit-ideal').textContent = `litros / ${(ideal * L_TO_GAL).toFixed(0)} gal (+50%)`;
-  document.getElementById('unit-diario').textContent = `litros / ${(diario * L_TO_GAL).toFixed(0)} gal por día`;
+  document.getElementById('r-diario').textContent = `${fmt(diarioMin)} – ${fmt(diarioMax)}`;
+  document.getElementById('unit-minima').textContent = `litros / ${(minimaMin * L_TO_GAL).toFixed(0)} – ${(minimaMax * L_TO_GAL).toFixed(0)} gal`;
+  document.getElementById('unit-ideal').textContent = `litros / ${(ideal * L_TO_GAL).toFixed(0)} gal (+50% sobre escenario alto)`;
+  document.getElementById('unit-diario').textContent = `litros / ${(diarioMin * L_TO_GAL).toFixed(0)} – ${(diarioMax * L_TO_GAL).toFixed(0)} gal por día`;
 
-  function both(l) { return `${fmt(l)} L / ${(l * L_TO_GAL).toFixed(1)} gal`; }
-  document.getElementById('b-duchas').textContent = both(diario * 0.35);
-  document.getElementById('b-sanit').textContent = both(diario * 0.30);
-  document.getElementById('b-cocina').textContent = both(diario * 0.20);
-  document.getElementById('b-limpieza').textContent = both(diario * 0.15);
+  function bothRange(lMin, lMax) { return `${fmt(lMin)} – ${fmt(lMax)} L / ${(lMin * L_TO_GAL).toFixed(1)} – ${(lMax * L_TO_GAL).toFixed(1)} gal`; }
+  document.getElementById('b-duchas').textContent = bothRange(diarioMin * 0.35, diarioMax * 0.35);
+  document.getElementById('b-sanit').textContent = bothRange(diarioMin * 0.30, diarioMax * 0.30);
+  document.getElementById('b-cocina').textContent = bothRange(diarioMin * 0.20, diarioMax * 0.20);
+  document.getElementById('b-limpieza').textContent = bothRange(diarioMin * 0.15, diarioMax * 0.15);
 
-  const aptos = tanques.filter(t => t.cap >= minima);
+  const aptos = tanques.filter(t => t.cap >= capacidadBase);
   let rhtml = '';
 
   if (aptos.length > 0) {
@@ -548,42 +617,52 @@ function calcular() {
         <div class="t-info">
           <div class="t-name">${t.nombre}</div>
           <div class="t-desc">${desc} · ${capDisplay}</div>
+          ${measuresTable(t, 'Medidas del tanque')}
         </div>
         <span class="t-badge ${badgeClass}">${badge}</span>
       </div>`;
     });
   } else {
-    const dobles = tanques.filter(t => t.cap * 2 >= minima);
-    const top3d = dobles.slice(0, 3);
+    // Si la capacidad requerida supera el tanque individual más grande,
+    // se recomiendan instalaciones en serie usando 2 tanques iguales.
+    const seriesDobles = tanques
+      .map(t => ({ ...t, cantidad: 2, capTotal: t.cap * 2 }))
+      .filter(t => t.capTotal >= capacidadBase);
+    const top3d = seriesDobles.slice(0, 3);
+
     if (top3d.length > 0) {
-      rhtml += `<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:#92400e;">
-        <strong>💡 Instalación en serie:</strong> Tu consumo supera el tanque individual más grande. Te recomendamos instalar 2 tanques conectados en serie.
+      rhtml += `<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:#92400e;line-height:1.45;">
+        <strong>💡 Instalación en serie:</strong> Tu consumo supera la capacidad de un solo tanque. Para cubrir la necesidad, recomendamos conectar 2 tanques iguales en serie.
       </div>`;
       top3d.forEach((t, i) => {
         let cls, badge, badgeClass, desc;
         if (i === 0) {
           cls = 'small'; badge = 'Mínimo'; badgeClass = 'badge-small';
-          desc = 'Capacidad combinada exacta';
+          desc = 'Cubre la necesidad calculada con 2 tanques';
         } else if (i === 1) {
           cls = 'best'; badge = 'Recomendado'; badgeClass = 'badge-best';
-          desc = 'La mejor combinación para tu hogar';
+          desc = 'Mejor balance entre capacidad y reserva';
         } else {
           cls = 'ok'; badge = 'Con holgura'; badgeClass = 'badge-ok';
-          desc = 'Amplia reserva de agua';
+          desc = 'Mayor reserva disponible en serie';
         }
-        const capTotal = t.cap * 2;
-        const capDisplay = `${capTotal.toLocaleString('es-PA')} L / ${(capTotal * L_TO_GAL).toFixed(1)} gal`;
+        const capDisplay = `${t.capTotal.toLocaleString('es-PA')} L / ${(t.capTotal * L_TO_GAL).toFixed(1)} gal`;
+        const unitDisplay = `${t.cap.toLocaleString('es-PA')} L / ${(t.cap * L_TO_GAL).toFixed(1)} gal c/u`;
         rhtml += `<div class="tanque-option ${cls}">
           <div class="t-icon">🛢🛢</div>
           <div class="t-info">
-            <div class="t-name">2 × ${t.nombre}</div>
-            <div class="t-desc">${desc} · ${capDisplay} en serie</div>
+            <div class="t-name">${t.cap.toLocaleString('es-PA')}L + ${t.cap.toLocaleString('es-PA')}L</div>
+            <div class="t-desc">${desc} · Total: ${capDisplay} · ${unitDisplay}</div>
+            ${measuresTable(t, 'Medidas por tanque')}
           </div>
           <span class="t-badge ${badgeClass}">${badge}</span>
         </div>`;
       });
     } else {
-      rhtml = '<p style="font-size:14px;color:#64748b;text-align:center;padding:12px 0;">Contáctanos para una solución a tu medida.</p>';
+      rhtml = `<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:#92400e;line-height:1.45;">
+        <strong>💡 Requiere asesoría:</strong> La demanda estimada supera incluso una instalación de 2 tanques iguales en serie con los modelos disponibles.
+      </div>
+      <p style="font-size:14px;color:#64748b;text-align:center;padding:12px 0;">Contáctanos para una solución a tu medida.</p>`;
     }
   }
   document.getElementById('tanques-container').innerHTML = rhtml;
